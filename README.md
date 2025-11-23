@@ -54,7 +54,7 @@ java Main
 Users can raise an emergency alert at any time. The alert is instantly displayed on screen with a timestamp and the user's name.
 
 Example:
-[EMERGENCY] Alert from abhinav_jha at 2025-06-08 19:22:13
+[EMERGENCY] Alert from Sahil_Mittal at 2025-06-08 19:22:13
 
 ## 🧪 Testing & Reliability
 
@@ -66,12 +66,10 @@ Example:
 
 ## 👥 Team Members
 
-Name           | Role                          | GitHub Profile
--------------- | ----------------------------- | -----------------------------------------
-Abhinav Jha    | System Architect               | https://github.com/Scranoid
-Sahil Mittal   | Core Developer                 | https://github.com/LazZzr
-Paras Jha      | Auth System Developer          | https://github.com/parasjha55
-Suraj Baghel   | Complaint Handling Integration | https://github.com/Surajbhaghel
+Name           | Role                                              | GitHub Profile
+-------------- | --------------------------------------------------| -----------------------------------------
+Sahil mittal   | Login, Registration & Complaint Management Lead   | https://github.com/LazZzr
+Raghav Rai     | Main Developer, System Architect, & Project Owner | https://github.com/raghavrai25
 
 ## 📄 License
 
