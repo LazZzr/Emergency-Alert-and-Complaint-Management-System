@@ -1,76 +1,230 @@
-# 🚨 Emergency Alert and Complaint Management System
+# 🚨 Emergency Alert & Complaint Management System
+A Java-based system that allows users to register, log in, file complaints, and submit emergency alerts.  
+This enhanced version includes **GUI integration, JDBC-based MySQL storage, file logging**, and a modular structure.
 
-### 📘 Project Overview
+---
 
-A Java-based console application that allows users to securely register, log complaints, and raise emergency alerts. This lightweight system uses file-based storage and emphasizes modular design, error handling, and user interaction through a clean command-line interface.
+# 📁 Project File Structure
 
-## ✅ Core Functionalities
+```
+Emergency-Alert-and-Complaint-Management-System/
+│
+├── Main.java
+├── pom.xml
+│
+├── dao/
+│   ├── UserDAO.java
+│   ├── ComplaintDAO.java
+│
+├── model/
+│   ├── User.java
+│   ├── Complaint.java
+│
+├── service/
+│   ├── AuthService.java
+│   ├── EmergencyService.java
+│
+├── util/
+│   ├── Validator.java
+│   ├── FileUtil.java
+│   ├── DatabaseManager.java      <-- JDBC Integration
+│   ├── DataLogger.java           <-- File-Based Logging
+│
+├── ui/
+│   ├── GUIApp.java               <-- Java Swing GUI
+│
+└── database/
+    └── emergencydb.sql           <-- MySQL DB Schema
+```
 
-- User Registration & Login (with validation)
-- Complaint Filing (with timestamp)
-- View Complaint History
-- Raise Emergency Alert (with real-time timestamp)
-- Persistent Data Storage (.txt files)
-- Modular Layered Architecture
-- Robust Error Handling & Input Validation
+---
 
-## 🧠 Technologies Used
+# 🗄️ Database Schema (MySQL)
 
-- Java (JDK 17+)
-- File Handling (BufferedReader, FileWriter)
-- Scanner-based Console UI
-- Object-Oriented Programming (OOP)
+```
+CREATE DATABASE emergencydb;
+USE emergencydb;
 
-## 📁 Folder Structure
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(100) UNIQUE,
+    password VARCHAR(100)
+);
 
-EmergencyAlertSystem/
-├── model/        # User & Complaint classes  
-├── dao/          # Data access operations  
-├── service/      # Business logic (auth/emergency)  
-├── util/         # Validators and file helpers  
-├── Main.java     # Entry point and UI navigation  
-├── README.md     # Project documentation
+CREATE TABLE complaints (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(100),
+    content TEXT,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
-## ▶️ How to Run the Project
+CREATE TABLE emergencies (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(100),
+    details TEXT,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
 
-### Prerequisites
-- Java JDK 17 or later installed
-- Any Java IDE (VS Code, IntelliJ, Eclipse) or terminal
+---
 
-### Compile & Execute
+# 🔌 JDBC Integration — DatabaseManager.java
 
-javac */*.java *.java
-java Main
+```
+public class DatabaseManager {
 
-## 🧪 Input Validations
+    private static final String URL = "jdbc:mysql://localhost:3306/emergencydb";
+    private static final String USER = "root";
+    private static final String PASSWORD = "yourpassword";
 
-- Username and password must not be empty
-- Duplicate usernames are rejected during registration
-- Complaint content must be non-empty
-- Invalid menu options show error messages without crashing
+    static {
+        try { Class.forName("com.mysql.cj.jdbc.Driver"); }
+        catch (Exception e) { e.printStackTrace(); }
+    }
 
-## 💥 Emergency Alert Feature
+    public static void insertComplaint(String username, String content) {
+        String sql = "INSERT INTO complaints(username, content) VALUES (?, ?)";
 
-Users can raise an emergency alert at any time. The alert is instantly displayed on screen with a timestamp and the user's name.
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
-Example:
-[EMERGENCY] Alert from Sahil_Mittal at 2025-06-08 19:22:13
+            ps.setString(1, username);
+            ps.setString(2, content);
+            ps.executeUpdate();
 
-## 🧪 Testing & Reliability
+        } catch (Exception e) { e.printStackTrace(); }
+    }
 
-- Fully tested on Java JDK 17
-- Input validation across all major user inputs
-- Files auto-create if not present (users.txt, complaints.txt)
-- Error handling prevents crashes and guides user on invalid actions
-- Clean and intuitive CLI for all user roles
+    public static void insertEmergency(String username, String details) {
+        String sql = "INSERT INTO emergencies(username, details) VALUES (?, ?)";
 
-## 👥 Team Members
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
-Name           | Role                                              | GitHub Profile
--------------- | --------------------------------------------------| -----------------------------------------
-Sahil mittal   | Login, Registration & Complaint Management Lead   | https://github.com/LazZzr
-Raghav Rai     | Main Developer, System Architect, & Project Owner | https://github.com/raghavrai25
+            ps.setString(1, username);
+            ps.setString(2, details);
+            ps.executeUpdate();
 
-## 📄 License
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+}
+```
 
-This project is intended for academic use only under Galgotias University’s B.Tech CSE curriculum.
+---
+
+# 📝 File Logger — DataLogger.java
+
+```
+public class DataLogger {
+
+    private static final String LOG_FILE = "complaints_log.txt";
+
+    public static void log(String entry) {
+        try (FileWriter fw = new FileWriter(LOG_FILE, true)) {
+            fw.write(LocalDateTime.now() + " - " + entry + "\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+---
+
+# 🖥️ GUI — GUIApp.java (Swing)
+
+```
+public class GUIApp {
+
+    public void init() {
+        JFrame frame = new JFrame("Emergency Alert System");
+        frame.setSize(600, 450);
+
+        JTextField userField = new JTextField(10);
+        JPasswordField passField = new JPasswordField(10);
+        JTextArea textArea = new JTextArea();
+
+        JButton loginBtn = new JButton("Login");
+        JButton complaintBtn = new JButton("Submit Complaint");
+        JButton alertBtn = new JButton("Report Emergency");
+
+        loginBtn.addActionListener(e -> {
+            if (authService.login(userField.getText(), new String(passField.getPassword()))) {
+                JOptionPane.showMessageDialog(frame, "Login Successful");
+            }
+        });
+
+        complaintBtn.addActionListener(e -> {
+            DatabaseManager.insertComplaint(userField.getText(), textArea.getText());
+            DataLogger.log("Complaint by " + userField.getText());
+        });
+
+        alertBtn.addActionListener(e -> {
+            DatabaseManager.insertEmergency(userField.getText(), textArea.getText());
+            DataLogger.log("Emergency by " + userField.getText());
+        });
+
+        frame.add(userField, BorderLayout.NORTH);
+        frame.add(new JScrollPane(textArea), BorderLayout.CENTER);
+        frame.add(alertBtn, BorderLayout.SOUTH);
+
+        frame.setVisible(true);
+    }
+
+    public static void main(String[] args) {
+        new GUIApp().init();
+    }
+}
+```
+
+---
+
+# ▶️ Updated Main.java
+
+```
+public static void main(String[] args) {
+
+    // Launch GUI automatically
+    ui.GUIApp app = new ui.GUIApp();
+    app.init();
+
+    System.out.println("GUI launched. CLI mode still available.");
+}
+```
+
+---
+
+# 👥 Team Members
+
+## **1️⃣ Raghav Rai**
+**Role:** Main Developer, System Architect & Project Owner  
+**Admission ID:** 24SCSE1010751  
+**GitHub:** https://github.com/raghavrai25  
+### Responsibilities
+- Designed complete system architecture  
+- Implemented core modules (User, Complaint, Emergency)  
+- Managed file-based data storage  
+- Oversaw project integration end‑to‑end  
+
+---
+
+## **2️⃣ Sahil Mittal**
+**Role:** Login, Registration & Complaint Management Lead  
+**Admission ID:** 24SCSE1011250  
+**GitHub:** https://github.com/LazZzr  
+### Responsibilities
+- Built secure login & registration logic  
+- Implemented complaint logging  
+- Helped integrate emergency alert subsystem  
+
+---
+
+# ✅ Summary
+This project includes:  
+✔ GUI system  
+✔ JDBC-backed complaint & emergency storage  
+✔ File-based logging  
+✔ Clean MVC-style structure  
+✔ Complete team documentation  
+
+
