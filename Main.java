@@ -16,6 +16,11 @@ public class Main {
     private static String currentUser = null;
 
     public static void main(String[] args) {
+        // Auto-launch GUI
+        ui.GUIApp gui = new ui.GUIApp();
+        gui.init();
+        System.out.println("GUI launched. CLI remains available.");
+    
         while (true) {
             if (currentUser == null) showAuthMenu();
             else showMainMenu();
